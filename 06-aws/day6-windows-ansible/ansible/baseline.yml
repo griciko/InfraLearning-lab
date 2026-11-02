@@ -1,0 +1,44 @@
+---
+# ---------- A small Windows server baseline (lab) ----------
+- name: Apply a Windows server baseline
+  hosts: win
+
+  tasks:
+    # Registry: a marker value showing that this server is managed by Ansible
+    - name: Set a registry marker
+      ansible.windows.win_regedit:
+        path: 'HKLM:\SOFTWARE\AnsibleLab'
+        name: ManagedBy
+        data: Ansible
+        type: string
+        state: present
+
+    # A machine-wide environment variable
+    - name: Set a machine environment variable
+      ansible.windows.win_environment:
+        name: LAB_ENV
+        value: training
+        level: machine
+        state: present
+
+    # Install Windows Server Backup: a Windows feature, no download needed
+    - name: Install the Windows Server Backup feature
+      ansible.windows.win_feature:
+        name: Windows-Server-Backup
+        state: present
+      register: backup_feature
+
+    # Reboot only if Windows says the install needs it
+    - name: Reboot if required
+      ansible.windows.win_reboot:
+      when: backup_feature.reboot_required
+
+    # Read-only: report the state of the IIS service from step 3
+    - name: Query the IIS service
+      ansible.windows.win_service_info:
+        name: W3SVC
+      register: iis_service
+
+    - name: Show the IIS service state
+      ansible.builtin.debug:
+        msg: "W3SVC state: {{ iis_service.services[0].state }}"

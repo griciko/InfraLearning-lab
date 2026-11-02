@@ -1,0 +1,70 @@
+---
+# ---------- Verify the restore. READ-ONLY on data: this playbook never writes the test file ----------
+- name: Verify the restored data disk
+  hosts: lab
+  become: true
+
+  vars:
+    # Same stable device path as before, built from the (restored) volume ID
+    data_device: "/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_{{ data_volume_id | replace('-', '') }}"
+    mount_point: /data
+
+  tasks:
+    # The restored volume must be visible to the OS
+    - name: Check the restored device exists
+      stat:
+        path: "{{ data_device }}"
+      register: device_check
+
+    # Fail early with a clear message if the disk is not where we expect it
+    - name: Stop if the device was not found
+      assert:
+        that: device_check.stat.exists
+        fail_msg: "Device {{ data_device }} not found. Check /dev/disk/by-id/ on the instance."
+
+    # Read the filesystem type WITHOUT changing anything
+    - name: Read the filesystem type
+      command: "blkid -o value -s TYPE {{ data_device }}"
+      register: fs_type
+      changed_when: false
+
+    # A restored disk must already carry its filesystem. If not, the restore failed: never format it
+    - name: The restored disk must already carry XFS
+      assert:
+        that: fs_type.stdout == "xfs"
+        fail_msg: "No XFS filesystem found. The restore is not valid. Do not format this disk."
+
+    # Mounting does not change the data
+    - name: Create mount directory
+      file:
+        path: "{{ mount_point }}"
+        state: directory
+
+    - name: Mount the restored disk
+      ansible.posix.mount:
+        path: "{{ mount_point }}"
+        src: "{{ data_device }}"
+        fstype: xfs
+        opts: defaults,nofail
+        state: mounted
+
+    # Look for the test file written BEFORE the backup
+    - name: Check the test file exists
+      stat:
+        path: "{{ mount_point }}/file1.txt"
+      register: file_check
+
+    - name: The test file must have survived
+      assert:
+        that: file_check.stat.exists
+        fail_msg: "file1.txt is missing: the restore did not bring the data back."
+
+    # Show the content, including the ORIGINAL timestamp from before the backup
+    - name: Read the test file
+      command: "cat {{ mount_point }}/file1.txt"
+      register: file_content
+      changed_when: false
+
+    - name: Show the test file
+      debug:
+        msg: "{{ file_content.stdout }}"

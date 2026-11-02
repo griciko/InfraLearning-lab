@@ -1,0 +1,56 @@
+---
+# ---------- Prepare the data volume: filesystem, mount, test file ----------
+- name: Prepare the data disk
+  hosts: lab
+  become: true
+
+  vars:
+    # Stable device path built from the EBS volume ID (hyphen removed), not a guessed nvme name
+    data_device: "/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_{{ data_volume_id | replace('-', '') }}"
+    mount_point: /data
+
+  tasks:
+    # Check the device exists
+    - name: Check the data device exists
+      stat:
+        path: "{{ data_device }}"
+      register: device_check
+
+    # Fail early with a clear message if the disk is not where we expect it
+    - name: Stop if the device was not found
+      assert:
+        that: device_check.stat.exists
+        fail_msg: "Device {{ data_device }} not found. Check /dev/disk/by-id/ on the instance."
+
+    # Create XFS only if the disk has no filesystem yet (never overwrites existing data)
+    - name: Create filesystem
+      community.general.filesystem:
+        fstype: xfs
+        dev: "{{ data_device }}"
+
+    # Create the mount point
+    - name: Create mount directory
+      file:
+        path: "{{ mount_point }}"
+        state: directory
+
+    # Mount now and record it in /etc/fstab. nofail avoids boot problems if the disk is missing
+    - name: Mount the data disk
+      ansible.posix.mount:
+        path: "{{ mount_point }}"
+        src: "{{ data_device }}"
+        fstype: xfs
+        opts: defaults,nofail
+        state: mounted
+
+    # Write the test file once. force: false means later runs never overwrite it
+    - name: Write the test file
+      copy:
+        content: "Backup test file, written by Ansible at {{ ansible_date_time.iso8601 }}\n"
+        dest: "{{ mount_point }}/file1.txt"
+        force: false
+
+    # Flush pending writes to disk, so the backup contains the file
+    - name: Flush writes to disk
+      command: sync
+      changed_when: false

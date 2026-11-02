@@ -1,0 +1,12 @@
+---
+- name: Playbook with variables
+  hosts: local
+  become: true
+  vars:
+    lab_message: "Message set by a variable"
+    lab_file: /tmp/ansible-lab/variable-demo.txt
+  tasks:
+    - name: Write a file using variables
+      copy:
+        content: "{{ lab_message }}\n"
+        dest: "{{ lab_file }}"

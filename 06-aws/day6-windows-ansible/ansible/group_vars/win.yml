@@ -1,0 +1,12 @@
+---
+# ---------- Connection settings for the "win" inventory group ----------
+ansible_connection: winrm
+ansible_port: 5986
+ansible_user: Administrator
+
+# The password is read from an environment variable: it never lives in a file or in Git
+ansible_password: "{{ lookup('env', 'ANSIBLE_WIN_PASSWORD') }}"
+
+# Local account: NTLM over HTTPS. Self-signed certificate: validation is off (lab only)
+ansible_winrm_transport: ntlm
+ansible_winrm_server_cert_validation: ignore

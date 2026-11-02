@@ -1,0 +1,14 @@
+---
+- name: Template and handler demo
+  hosts: local
+  become: true
+  tasks:
+    - name: Deploy info file from template
+      template:
+        src: ../templates/info.txt.j2
+        dest: /tmp/ansible-lab/info.txt
+      notify: Show the file
+
+  handlers:
+    - name: Show the file
+      command: cat /tmp/ansible-lab/info.txt

@@ -1,0 +1,39 @@
+---
+- name: Configure the Windows 11 lab VM
+  hosts: w11
+
+  tasks:
+    - name: Set the computer name
+      ansible.windows.win_hostname:
+        name: "{{ vm_hostname }}"
+      register: rename
+
+    - name: Reboot if the rename needs it
+      ansible.windows.win_reboot:
+      when: rename.reboot_required
+
+    - name: Create the lab folder
+      ansible.windows.win_file:
+        path: C:\lab
+        state: directory
+
+    - name: Write a marker file
+      ansible.windows.win_copy:
+        dest: C:\lab\info.txt
+        content: |
+          Built by Hyper-V, configured by Ansible.
+
+    - name: Read TPM and Secure Boot state
+      ansible.windows.win_powershell:
+        script: |
+          [pscustomobject]@{
+            TpmPresent = (Get-Tpm).TpmPresent
+            TpmReady   = (Get-Tpm).TpmReady
+            SecureBoot = Confirm-SecureBootUEFI
+          }
+      register: hw
+      changed_when: false
+
+    - name: Show the result
+      ansible.builtin.debug:
+        var: hw.output

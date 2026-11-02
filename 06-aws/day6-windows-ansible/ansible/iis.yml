@@ -1,0 +1,45 @@
+---
+# ---------- Install and configure IIS on the Windows server ----------
+- name: Install and configure IIS
+  hosts: win
+
+  vars:
+    web_root: 'C:\inetpub\wwwroot'
+
+  tasks:
+    # Install the IIS role with its management tools
+    - name: Install IIS
+      ansible.windows.win_feature:
+        name: Web-Server
+        state: present
+        include_management_tools: true
+      register: iis_install
+
+    # Reboot only if Windows says the install needs it
+    - name: Reboot if required
+      ansible.windows.win_reboot:
+      when: iis_install.reboot_required
+
+    # Make sure the IIS service is running and starts automatically
+    - name: Start the IIS service
+      ansible.windows.win_service:
+        name: W3SVC
+        state: started
+        start_mode: auto
+
+    # Allow HTTP in the Windows Firewall (the security group limits who can reach it)
+    - name: Open port 80 in the Windows Firewall
+      community.windows.win_firewall_rule:
+        name: HTTP-In-Ansible-Lab
+        localport: 80
+        protocol: tcp
+        action: allow
+        direction: in
+        state: present
+        enabled: true
+
+    # Replace the default page. index.html is served before IIS's default iisstart.htm
+    - name: Deploy the index page
+      ansible.windows.win_copy:
+        content: "<h1>Salut, un nou mesaj din cloud (IIS)</h1>\r\n"
+        dest: '{{ web_root }}\index.html'

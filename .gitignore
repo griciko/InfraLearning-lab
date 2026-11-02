@@ -1,0 +1,64 @@
+# ---------- Terraform ----------
+# Local provider cache and modules
+.terraform/
+
+# State files (can contain secrets, never commit)
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Variable files that may hold real values
+*.tfvars
+*.tfvars.json
+!example.tfvars
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Plan output
+*.tfplan
+tfplan
+
+# CLI config
+.terraformrc
+terraform.rc
+
+# NOTE: keep .terraform.lock.hcl in Git (it pins provider versions)
+
+# ---------- Secrets and credentials ----------
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.p12
+secrets.*
+*.secret
+
+# ---------- Ansible ----------
+*.retry
+vault_pass*
+.vault_pass*
+
+# ---------- PowerShell ----------
+*.log
+*.transcript
+
+# ---------- Editors and OS ----------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- Python (Ansible tooling) ----------
+__pycache__/
+*.pyc
+.venv/
+venv/

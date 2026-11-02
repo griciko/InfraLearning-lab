@@ -1,0 +1,33 @@
+---
+- name: Install and configure nginx
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Deploy the web page
+      ansible.builtin.copy:
+        dest: /var/www/html/index.html
+        mode: "0644"
+        content: |
+          <h1>Hello from Azure</h1>
+          <p>Built by Terraform, configured by Ansible.</p>
+      notify: Reload nginx
+
+    - name: Make sure nginx is running and starts at boot
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded

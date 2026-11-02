@@ -1,0 +1,5 @@
+my_ip              = "203.0.113.10"
+key_name           = "my-key-pair"
+ssh_key_path       = "~/.ssh/my-key.pem"
+availability_zone  = "eu-north-1c"
+restored_volume_id = "vol-014e50a69fb6eb707"

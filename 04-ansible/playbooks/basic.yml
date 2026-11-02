@@ -1,0 +1,23 @@
+---
+- name: Basic Ansible lab
+  hosts: local
+  become: true
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install tree package
+      apt:
+        name: tree
+        state: present
+
+    - name: Create a lab directory
+      file:
+        path: /tmp/ansible-lab
+        state: directory
+
+    - name: Create a file with content
+      copy:
+        content: "Hello from Ansible!\n"
+        dest: /tmp/ansible-lab/hello.txt

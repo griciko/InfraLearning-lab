@@ -1,0 +1,28 @@
+---
+- name: Install IIS and publish a web page
+  hosts: windows
+
+  tasks:
+    - name: Install IIS
+      ansible.windows.win_feature:
+        name: Web-Server
+        state: present
+        include_management_tools: true
+      register: iis
+
+    - name: Deploy the web page
+      ansible.windows.win_copy:
+        dest: C:\inetpub\wwwroot\index.html
+        content: |
+          <h1>Hello from Azure Windows</h1>
+          <p>Terraform with remote state, Ansible over WinRM.</p>
+
+    - name: Make sure the web service runs and starts at boot
+      ansible.windows.win_service:
+        name: W3SVC
+        state: started
+        start_mode: auto
+
+    - name: Reboot if IIS needs it
+      ansible.windows.win_reboot:
+      when: iis.reboot_required

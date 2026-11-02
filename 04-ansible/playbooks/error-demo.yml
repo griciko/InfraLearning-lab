@@ -1,0 +1,12 @@
+---
+- name: Error handling demo
+  hosts: local
+  become: true
+  tasks:
+    - name: This will fail on purpose
+      command: /bin/false
+      ignore_errors: true
+
+    - name: This still runs because of ignore_errors
+      debug:
+        msg: "Previous task failed, but we continued anyway"
