@@ -21,9 +21,9 @@ Build practical skills in Infrastructure as Code and automation, then apply them
 | 5 | PowerShell scripting | In progress | [`05-powershell`](./05-powershell) |
 | 6 | AWS: Terraform and Ansible on real infrastructure (Days 1-4) | Done | [`06-aws`](./06-aws) |
 | 7 | AWS Backup (production-style backups) | Done | [`06-aws`](./06-aws) |
-| 8 | Ansible on Windows (WinRM) | Planned | _coming soon_ |
-| 9 | Terraform on Azure | Next | _coming soon_ |
-| 10 | Entra ID and Intune as code | Next | _coming soon_ |
+| 8 | Ansible on Windows (WinRM) | Done | _coming soon_ |
+| 9 | Terraform on Azure | In progress | _coming soon_ |
+| 10 | Entra ID and Intune as code | In progress | _coming soon_ |
 
 Update the status column as you go: Planned, In progress, Done.
 
